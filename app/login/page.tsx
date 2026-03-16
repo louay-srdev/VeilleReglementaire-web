@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Shield } from "lucide-react"
+import { authService } from "@/services/authService"
+import { setAuthToken } from "@/hooks/useAuthToken"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -16,11 +18,28 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [rememberMe, setRememberMe] = useState(false)
+   const [loading, setLoading] = useState(false)
+   const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle login - redirect to dashboard
-    router.push("/dashboard")
+    setError(null)
+    setLoading(true)
+    try {
+      const res = await authService.login({ email, password })
+      setAuthToken(res.access_token)
+      router.push("/dashboard")
+    } catch (err: any) {
+      const message =
+        err?.message ??
+        (Array.isArray(err?.data?.message)
+          ? err.data.message[0]
+          : err?.data?.message) ??
+        "Impossible de se connecter. Vérifiez vos identifiants."
+      setError(message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -109,9 +128,13 @@ export default function LoginPage() {
                 </Label>
               </div>
 
+              {error && (
+                <p className="text-sm text-destructive">{error}</p>
+              )}
+
               {/* Submit Button */}
-              <Button type="submit" className="w-full">
-                Se connecter
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Connexion..." : "Se connecter"}
               </Button>
             </form>
           </CardContent>

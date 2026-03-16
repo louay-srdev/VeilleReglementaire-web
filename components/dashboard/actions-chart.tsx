@@ -1,22 +1,50 @@
-"use client"
+"use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { DashboardStats } from "@/types/api";
 
-const data = [
-  { name: "À faire", value: 12, color: "#6b7280" },
-  { name: "En cours", value: 8, color: "#2563eb" },
-  { name: "Réalisées", value: 25, color: "#22c55e" },
-  { name: "En retard", value: 5, color: "#ef4444" },
-]
+const FALLBACK_DATA = [
+  { name: "À faire", value: 0, color: "#6b7280" },
+  { name: "En cours", value: 0, color: "#2563eb" },
+  { name: "Réalisées", value: 0, color: "#22c55e" },
+  { name: "En retard", value: 0, color: "#ef4444" },
+];
 
-export function ActionsChart() {
+interface ActionsChartProps {
+  stats?: DashboardStats;
+  loading?: boolean;
+  error?: boolean;
+}
+
+export function ActionsChart({ stats, loading, error }: ActionsChartProps) {
+  const data = stats
+    ? [
+        { name: "À faire", value: stats.actionsByStatus.A_FAIRE, color: "#6b7280" },
+        { name: "En cours", value: stats.actionsByStatus.EN_COURS, color: "#2563eb" },
+        { name: "Réalisées", value: stats.actionsByStatus.REALISEE, color: "#22c55e" },
+        { name: "En retard", value: stats.actionsByStatus.EN_RETARD, color: "#ef4444" },
+      ]
+    : FALLBACK_DATA;
+
   return (
     <Card className="rounded-xl shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg font-semibold">Actions par statut</CardTitle>
       </CardHeader>
       <CardContent>
+        {error && (
+          <p className="mb-2 text-sm text-destructive">
+            Erreur lors du chargement des données.
+          </p>
+        )}
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -53,7 +81,13 @@ export function ActionsChart() {
             </PieChart>
           </ResponsiveContainer>
         </div>
+        {loading && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Chargement des données…
+          </p>
+        )}
       </CardContent>
     </Card>
-  )
+  );
 }
+

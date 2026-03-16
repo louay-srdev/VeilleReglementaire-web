@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Eye, EyeOff, Shield } from "lucide-react"
+import { authService } from "@/services/authService"
+import { setAuthToken } from "@/hooks/useAuthToken"
 
 const domains = [
   { id: "environnement", name: "Environnement" },
@@ -39,6 +41,8 @@ export default function SignupPage() {
     confirmPassword: "",
     acceptTerms: false,
   })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const passwordsMatch = formData.password === formData.confirmPassword
   const isValid =
@@ -52,10 +56,29 @@ export default function SignupPage() {
     passwordsMatch &&
     formData.acceptTerms
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (isValid) {
+    if (!isValid) return
+    setError(null)
+    setLoading(true)
+    try {
+      const res = await authService.register({
+        email: formData.email,
+        password: formData.password,
+        fullName: `${formData.firstName} ${formData.lastName}`,
+      })
+      setAuthToken(res.access_token)
       router.push("/dashboard")
+    } catch (err: any) {
+      const message =
+        err?.message ??
+        (Array.isArray(err?.data?.message)
+          ? err.data.message[0]
+          : err?.data?.message) ??
+        "Erreur lors de la création du compte."
+      setError(message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -244,9 +267,11 @@ export default function SignupPage() {
                 </Label>
               </div>
 
+              {error && <p className="text-sm text-destructive">{error}</p>}
+
               {/* Submit Button */}
-              <Button type="submit" className="w-full" disabled={!isValid}>
-                Créer mon compte
+              <Button type="submit" className="w-full" disabled={!isValid || loading}>
+                {loading ? "Création en cours..." : "Créer mon compte"}
               </Button>
             </form>
           </CardContent>

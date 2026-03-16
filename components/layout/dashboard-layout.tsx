@@ -1,18 +1,21 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { cn } from "@/lib/utils"
-import { Sidebar } from "./sidebar"
-import { TopBar } from "./topbar"
-import { MobileNav } from "./mobile-nav"
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Sidebar } from "./sidebar";
+import { TopBar } from "./topbar";
+import { MobileNav } from "./mobile-nav";
+import { useRequireAuth } from "@/hooks/useAuthToken";
 
 interface DashboardLayoutProps {
-  children: React.ReactNode
-  title?: string
+  children: React.ReactNode;
+  title?: string;
 }
 
 export function DashboardLayout({ children, title }: DashboardLayoutProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  useRequireAuth();
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -29,7 +32,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
         className={cn(
           "flex flex-col transition-all duration-300",
           "md:ml-64",
-          isCollapsed && "md:ml-16"
+          isCollapsed && "md:ml-16",
         )}
       >
         {/* TopBar with Mobile Nav */}
@@ -47,5 +50,6 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }
+
